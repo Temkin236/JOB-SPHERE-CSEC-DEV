@@ -1,4 +1,8 @@
 import Job from '../models/jobModel.js';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
+
 
 const getJob = async (req, res) => {
     try {
@@ -25,7 +29,16 @@ const getJobById = async (req, res) => {
 }
 const createJob = async (req, res) => {
     const {title,company,location,type,description,salary,logo,experienceLevel,currency,isbookmarked} = req.body;
+    const logoBuffer = req.file.logoBuffer
+    const resizedBuffer = await sharp(logoBuffer).resize({ width: 250, height: 250 }).png().toBuffer();
+    const name ='logo-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpeg';
+      const filePath = path.join(__dirname, '../../uploads', name);
 
+      fs.writeFile(filePath, resizedBuffer, (error)=>{
+        if(error) {
+          console.log('error saving the file', error);
+         }
+      })
     try {
          const job = new Job({
             title,
@@ -34,7 +47,7 @@ const createJob = async (req, res) => {
             type,
             description,
             salary,
-            logo,
+            logo: filePath,
             experienceLevel,
             currency,
             isbookmarked
